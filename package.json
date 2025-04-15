@@ -1,0 +1,25 @@
+{
+    "name": "Framework",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "dev": "parcel src/index.html"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@snowplow/browser-plugin-client-hints": "^3.17.0",
+        "@snowplow/browser-plugin-ecommerce": "^3.17.0",
+        "@snowplow/browser-plugin-ga-cookies": "^3.17.0",
+        "@snowplow/browser-plugin-link-click-tracking": "^3.21.0",
+        "@snowplow/browser-plugin-media-tracking": "^3.21.0",
+        "@snowplow/browser-plugin-performance-timing": "^3.17.0",
+        "@snowplow/browser-plugin-snowplow-ecommerce": "^3.17.0",
+        "@snowplow/browser-tracker": "^3.24.0",
+        "parcel": "^2.14.4"
+    },
+    "devDependencies": {
+        "buffer": "^6.0.3"
+    }
+}
