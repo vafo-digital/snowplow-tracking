@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
@@ -7,6 +7,44 @@
     <script type="module" src="app.js"></script>
   </head>
   <body>
+
+    <!-- SET CUSTOMER INFORMATION -->
+    <meta 
+        pooch-customer="example_id"
+        pooch-customer-email="example@vafo.digital"
+        pooch-customer-name="Joe Blogs"
+    />
+
     <h1>Snowplow</h1>
+
+    <section>
+      <h2>ECOM</h2>
+      <div class="wrapper">
+        <button id="product-view">Trigger Product View</button>
+        <button id="add-to-cart">Add to Cart</button>
+        <button id="multi-add-to-cart">Multi Add to Cart</button>
+        <button id="update-cart">Update Cart</button>
+        <button id="product-click">Product Click</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>BLOG</h2>
+      <div class="wrapper">
+        <button id="blog-view">Trigger Blog View</button>
+        <button id="article-view">Trigger Article View</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>SUBSCRIPTION</h2>
+      <div class="wrapper">
+        <button id="subscription-update">Subscription Update</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>NAVIGATION</h2>
+    </section>
   </body>
 </html>
