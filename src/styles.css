@@ -7,14 +7,18 @@ h1 {
     background-color: rgb(102, 56, 184);
     color: white;
     padding: 1rem;
+    border-radius: 2px;
 }
 
 section {
     padding: 1rem;
+    padding-top: 0;
 }
 
 section h2 {
-    border-bottom: solid 1px grey;
+    border-bottom: 4px solid rgb(102, 56, 184);
+    color: rgb(102, 56, 184);
+    padding: .5rem 0;
 }
 
 .wrapper {

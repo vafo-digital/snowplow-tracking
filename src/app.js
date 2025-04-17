@@ -1,285 +1,137 @@
-// CORE METHODS
+//########################//
+// || SNOWPLOW IMPORTS || //
+//########################//
 
-import { snowplowCore } from "./js/snowplow/core";
-import { init } from "./js/methods/init";
-import { attributes } from "./js/methods/attributes";
-import { consent } from "./js/methods/consent";
-import { debug } from "./js/methods/debug";
-import { entities } from "./js/methods/entities";
-import { events } from "./js/methods/events";
-import { listeners } from "./js/methods/listeners";
-import { triggers } from "./js/methods/triggers";
-import { utils } from "./js/methods/utils";
-import { utms } from "./js/methods/utms";
+/* Import core Snowplow functionality  */
 
-// SNOWPLOW METHODS
+import { newTracker, setUserId, trackPageView, enableActivityTracking, addGlobalContexts } from "@snowplow/browser-tracker";
+import { SnowplowEcommercePlugin, setEcommerceUser } from '@snowplow/browser-plugin-snowplow-ecommerce';
+import { PerformanceTimingPlugin } from '@snowplow/browser-plugin-performance-timing';
+import { ClientHintsPlugin } from '@snowplow/browser-plugin-client-hints';
+import { MediaTrackingPlugin } from '@snowplow/browser-plugin-media-tracking';
+import { LinkClickTrackingPlugin, enableLinkClickTracking } from '@snowplow/browser-plugin-link-click-tracking';
 
-import { snowplowBlog } from "./js/snowplow/blog";
-import { snowplowSubs } from "./js/snowplow/subs";
-import { snowplowEcom } from "./js/snowplow/ecom";
-import { snowplowForm } from "./js/snowplow/form";
-import { snowplowMedia } from "./js/snowplow/media";
- 
-/*
-######################################################
-||                                                  ||
-||  SNOWPLOW OBJECT FOR MANAGING STATE AND METHODS  ||
-||                                                  ||
-######################################################
+import './js/listeners';
+
+//############################//
+// || DATA OBJECTS IMPORTS || //
+//############################//
+
+/* Dummy data for use in examples */
+
+import { 
+    consent, 
+    customer, 
+} from "./js/data";
+
+//#####################################//
+// || INITIALISE SNOWPLOW VARIABLES || //
+//#####################################//
+
+/* 
+  Connection to snowplow. 
+  Local host example using snowplow micro.
+  https://docs.snowplow.io/docs/data-product-studio/data-quality/snowplow-micro/basic-usage/
 */
 
-const Snowplow = {
-    state: {
-        debug:      false,
-        app:        'snowplow',
-        version:    '1.0.0',
-        cart:       {},
-        attributes: {},
-        user:       {},
-        product:    {},
-        collection: {},
-        checkout:   {},
-        awin: {
-            account_id: "",
-        },
+let collectorUrl = "http://localhost:9090/"
+let postPath = 'com.snowplowanalytics.snowplow/tp2'
+let appId = 'Snowplow Demo'
 
-        movableink: {
-            account_id: "",
-            loaded: false
-        },
+//######################//
+// || MANAGE CONSENT || //
+//######################//
 
-        snowplowConfig: {
-            dev:        'http://localhost:9090/',
-            collector:  'http://localhost:9090/',
-            appId:      'Snowplow Demo',
-            postPath:   'com.snowplowanalytics.snowplow/tp2'
-        }
+/*
+    Manage tracking consent.
+    this example checks if functional consent is true.
+    If functional consent isn't granted, anonymoustracking mode is activated.
+*/
+
+let eventMethod, anonymousTracking, stateStorageStrategy, respectDoNotTrack;
+
+if (consent.functional) {
+    eventMethod = "post",
+    anonymousTracking = false;
+    stateStorageStrategy = "cookieAndLocalStorage";
+    respectDoNotTrack = false;
+}
+else {
+    eventMethod = "post",
+    anonymousTracking = { withServerAnonymisation: true };
+    stateStorageStrategy = "none";
+    respectDoNotTrack = false;
+}
+
+//##########################//
+// || INITIALISE TRACKER || //
+//##########################//
+
+/* Initialise tracker with consent and config data. */
+
+newTracker('sp', collectorUrl, {
+    anonymousTracking: anonymousTracking,
+    eventMethod: eventMethod,
+    stateStorageStrategy: stateStorageStrategy,
+    respectDoNotTrack: respectDoNotTrack,
+    postPath: postPath,
+    appId: appId,
+    platform: 'web',
+    discoverRootDomain: true,
+    cookieSameSite: 'Lax',
+    contexts: {
+        webPage: true,
+        session: true,
+        browser: true
     },
-
-    attributes,
-    //cart,
-    consent, // CHECK TRACKING CONSENT
-    debug,
-    entities,
-    events,
-    init, // INITIALISE SNOWPLOW
-    listeners, // LISTEN FOR EVENTS TO TRACK
-    //schemalayer,
-    triggers,
-    utms,
-    utils,
-
-    snowplowCore,
-    snowplowBlog,
-    snowplowEcom,
-    snowplowSubs,
-    snowplowForm,
-    snowplowMedia,
-    //snowplowFYF,
-    //snowplowPoochProfile
-}
-
-/*
-####################################################
-||                                                ||
-||  INITIALISE SNOWPLOW WHEN CONSENT IS OBTAINED  ||
-||                                                ||
-####################################################
-*/
-
-window.addEventListener("hb_consent_ready", function (event) {
-    Snowplow.init(event.detail);
+    plugins: [ SnowplowEcommercePlugin(), PerformanceTimingPlugin(), ClientHintsPlugin(), MediaTrackingPlugin(), LinkClickTrackingPlugin() ]
 });
 
-/*
-#########################################
-||                                     ||
-||  SNOWLPLOW EVENT TRACKING EXAMPLES  ||
-||                                     ||
-#########################################
-*/
+//########################################//
+// || SET GLOBAL CONTEXTS AND TRACKERS || //
+//########################################//
 
-//#############################//
-// || OBTAIN COOKIE CONSENT || //
-//#############################//
+/* Sets custom poochandmut global contexts for consent and customer data */
 
-/*
-//    Get cookie consent from cookie management
-//    Provide them in the format below.
-//    The groups must match
-//   'Required', 'Functional', 'Analytics', 'Targeting'
-*/
+addGlobalContexts([{
+    schema: 'iglu:com.poochandmutt/consent_object/jsonschema/1-0-0',
+    data: consent
+}]);
 
-const CookieConsentObject = {
-    groups: ['Required', 'Functional', 'Analytics', 'Targeting']
-}
+addGlobalContexts([{
+    schema: 'iglu:com.poochandmutt/customer_object/jsonschema/1-0-1',
+    data: customer
+}]);
 
-let hb_event = new CustomEvent("hb_consent_ready", { detail: CookieConsentObject });
-window.dispatchEvent(hb_event);
+/* Sets user id and ecommerce user */
 
-//################################//
-// || TRACK PRODUCT VIEW EVENT || //
-//################################//
+if(customer.id) {
 
-/*
-//    To track product view event you must meet the product schema critera
-//    iglu:com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-//    https://github.com/snowplow/iglu-central/blob/master/schemas/com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-*/
-
-document.getElementById('product-view').addEventListener('click', () => {
-
-    const ProductData = {
-        product_id: "example-product-url",
-        creative: "pdp",
-        subscription: false,
-        title: "Example product title",
-        product_type: "one time",
-        product_price: 10,
-        product_currency: "GBP",
-        product_sku: "EXAMPLESKU",
-        variant_id: "variantid",
-        category: "example category"
-    }
-	  
-	let prodevent = new CustomEvent("hb_product_view", { detail: ProductData });
-	window.dispatchEvent(prodevent);
-});
-
-//#########################################//
-// || TRIGGER PRODUCT ADD TO CART EVENT || //
-//#########################################//
-
-/*
-//    To track add to cart event you must meet the product schema critera
-//    iglu:com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-//    https://github.com/snowplow/iglu-central/blob/master/schemas/com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-*/
-
-document.getElementById('add-to-cart').addEventListener('click', () => {
-
-    let detail = {
-        product_id: "example-product-url",
-        quantity: 4,
-        creative: "pdp",
-        subscription: false,
-        title: "Example product title",
-        product_type: "one time",
-        product_price: 10,
-        product_currency: "GBP",
-        product_sku: "EXAMPLESKU",
-        variant_id: "variantid",
-      };
-  
-      let hb_event = new CustomEvent("hb_add_to_cart", { detail: detail });
-      window.dispatchEvent(hb_event);
-});
-
-//###############################################//
-// || TRIGGER PRODUCT MULTI ADD TO CART EVENT || //
-//###############################################//
-
-/*
-//    To track multi add to cart event you must meet the product schema critera
-//    iglu:com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-//    https://github.com/snowplow/iglu-central/blob/master/schemas/com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-*/
-
-document.getElementById('multi-add-to-cart').addEventListener('click', () => {
-
-    let products = [{
-            product_id: "example-product-url",
-            quantity: 4,
-            creative: "pdp",
-            subscription: false,
-            title: "Example product title",
-            product_type: "one time",
-            product_price: 10,
-            product_currency: "GBP",
-            product_sku: "EXAMPLESKU",
-            variant_id: "variantid",
-        },
-        {
-            product_id: "example-product-two-url",
-            quantity: 1,
-            creative: "pdp",
-            subscription: false,
-            title: "Example product two title",
-            product_type: "one time",
-            product_price: 20,
-            product_currency: "GBP",
-            product_sku: "EXAMPLETWOSKU",
-            variant_id: "variantidTWO",
-        }
-    ];
-
-    let detail = {
-        products: products
-    }
-  
-    let hb_event = new CustomEvent("hb_add_to_cart_multi", { detail: detail });
-    window.dispatchEvent(hb_event);
-});
-
-//#################################//
-// || TRIGGER UPDATE CART EVENT || //
-//#################################//
-
-/*
-//    To track cart update event you must meet the product schema critera
-//    iglu:com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-//    https://github.com/snowplow/iglu-central/blob/master/schemas/com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-*/
-
-document.getElementById('update-cart').addEventListener('click', () => {
-
-    let detail = {
-        product_id: "example-product-url",
-        quantity: 1, // QUANTITY SET TO 0 WILL TRIGGER REMOVE FROM CART EVENT
-        creative: "pdp",
-        subscription: false,
-        title: "Example product title",
-        product_type: "one time",
-        product_price: 10,
-        product_currency: "GBP",
-        product_sku: "EXAMPLESKU",
-        variant_id: "variantid",
-      };
- 
-      let cartevent = new CustomEvent("hb_update_cart", { detail: detail });
-      window.dispatchEvent(cartevent);
-
-});
-
-
-//#################################//
-// || TRIGGER PRODUCT CLICK || //
-//#################################//
-
-/*
-//    To track product click event you must meet the product schema critera
-//    iglu:com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-//    https://github.com/snowplow/iglu-central/blob/master/schemas/com.snowplowanalytics.snowplow.ecommerce/product/jsonschema/1-0-0
-*/
-
-document.getElementById('product-click').addEventListener('click', () => {
-
-    let detail = {
-        handle: 'cart',
-        creative: "quickbuy",
-        list_name: 'Collection Page',
-        product_id: "example-product-two-url",
-        quantity: 1,
-        subscription: false,
-        title: "Example product two title",
-        product_type: "one time",
-        product_price: 20,
-        product_currency: "GBP",
-        product_sku: "EXAMPLETWOSKU",
-        variant_id: "variantidTWO",
+    let payload = {
+        id: customer.id,
+        email: customer.email,
+        is_guest: false
     };
- 
-      let prodevent = new CustomEvent("hb_product_click", { detail: detail });
-      window.dispatchEvent(prodevent);
+    
+    setUserId(customer.id);
+    setEcommerceUser(payload);
+}
 
+/* Sets basic tracking for default page views and activity */
+
+enableActivityTracking({ 
+    minimumVisitLength: 30, 
+    heartbeatDelay: 10 
+});
+
+trackPageView();
+
+/* Track link clicks from allowed class list and return tag content for context */
+
+enableLinkClickTracking({ 
+    pseudoClicks: true,
+    options: {
+        'allowlist': ['sp-track']
+    },
+    trackContent: true 
 });
