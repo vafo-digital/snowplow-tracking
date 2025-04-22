@@ -345,24 +345,24 @@ document.getElementById('article-view').addEventListener('click', () => {
 });
 
 /*
-// TRIGGER BLOG VIEW
-// REQUIRES BLOG OBJECT AND EVENT TYPE
+// TRIGGER AUTHOR VIEW
+// REQUIRES AUTHOR OBJECT AND EVENT TYPE
 */
 
-document.getElementById('blog-view').addEventListener('click', () => {
+document.getElementById('author-view').addEventListener('click', () => {
 
     let contexts = [
         {
-            schema: 'iglu:com.poochandmutt/blog_object/jsonschema/1-0-0',
-            data: blog
-        } 
+            schema: 'iglu:com.poochandmutt/author_object/jsonschema/1-0-0',
+            data: author
+        }
     ];
 
     let payload = {
         event: {
             schema: 'iglu:com.poochandmutt/blog_action/jsonschema/1-0-1',
             data: {
-                type: "blog_view"
+                type: "author_view"
             }
         },
         context: contexts
