@@ -5,7 +5,7 @@
 /* Import core Snowplow functionality  */
 
 import { newTracker, setUserId, trackPageView, enableActivityTracking, addGlobalContexts } from "@snowplow/browser-tracker";
-import { SnowplowEcommercePlugin, setEcommerceUser } from '@snowplow/browser-plugin-snowplow-ecommerce';
+import { SnowplowEcommercePlugin, setEcommerceUser, setPageType } from '@snowplow/browser-plugin-snowplow-ecommerce';
 import { PerformanceTimingPlugin } from '@snowplow/browser-plugin-performance-timing';
 import { ClientHintsPlugin } from '@snowplow/browser-plugin-client-hints';
 import { MediaTrackingPlugin } from '@snowplow/browser-plugin-media-tracking';
@@ -36,7 +36,7 @@ import {
 
 let collectorUrl = "http://localhost:9090/"
 let postPath = 'com.snowplowanalytics.snowplow/tp2'
-let appId = 'Snowplow Demo'
+let appId = 'snowplow-demo-app'
 
 //######################//
 // || MANAGE CONSENT || //
@@ -70,6 +70,7 @@ else {
 /* Initialise tracker with consent and config data. */
 
 newTracker('sp', collectorUrl, {
+    // idService: "/cookie.php", // uncomment this when deploying to producttionm
     anonymousTracking: anonymousTracking,
     eventMethod: eventMethod,
     stateStorageStrategy: stateStorageStrategy,
@@ -122,6 +123,10 @@ if(customer.id) {
 enableActivityTracking({ 
     minimumVisitLength: 30, 
     heartbeatDelay: 10 
+});
+
+setPageType({
+    type: "pdp" // home, plp, pdp, cart, checkout, thankyou, blog, article, landing etc
 });
 
 trackPageView();

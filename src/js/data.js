@@ -9,6 +9,14 @@ export let consent = {
 export let customer = {
     email: "example@vafo.digital",
     id: "example_id",
+    status: "logged_in", // logged_in or guest
+    orders_count: 23,
+    last_order_date: '2025-03-30',
+    active_subs:  1,
+    total_subs: 3,
+    subscriber_status: "active", // active or inactive
+    loyalty_segment: "Loyal",
+    total_pets: 2
 }
 
 export let product = {
@@ -36,7 +44,7 @@ export let promoClick = {
 }
 
 export let subscription = {
-    id: "subscription_id",
+    id: 1234567890,
     name: "Name",
     product_id: "product_id",
     status: "Enabled",
@@ -45,18 +53,18 @@ export let subscription = {
     price: 30,
     frequency: 20,
     frequency_unit: "days",
-    next_date: "Date",
-    customer_id: "customer_id",
-    address_id: "address_id",
-    payment_id: "payment_id",
+    next_date: "2025-05-31",
+    customer_id: 1234567890,
+    address_id: 1234567890,
+    payment_id: 1234567890,
     payment_type: "payment_type",
     discount: "discount",
     last_order_id: "last_order_id",
-    total_orders: "total_orders",
-    created_at: "create_at",
-    cancelled_at: "cancelled_at",
-    cancelled_reason: "cancelled_reason",
-    cancelled_comments: "cancelled_comments"
+    total_orders: 12,
+    created_at: "2025-01-17",
+    cancelled_at: "",
+    cancelled_reason: "",
+    cancelled_comments: ""
 }
 
 export let transaction = {
@@ -95,4 +103,7 @@ export let form = {
     id: "form_id",
     name: "Form Name",
     content: "Form content example"
+    // plus any fields from the form
+    // e.g. name, email, phone, address, etc
+    // or any other custom fields
 }

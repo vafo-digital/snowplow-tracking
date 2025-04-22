@@ -10,7 +10,6 @@ import { trackSelfDescribingEvent } from "@snowplow/browser-tracker";
 import { enableMediaTracking } from '@snowplow/browser-plugin-media-tracking';
 
 import { 
-    setPageType, 
     trackPromotionClick, 
     trackProductListClick, 
     trackProductView,
@@ -44,20 +43,6 @@ import {
 //#######################//
 // || EVENT LISTENERS || //
 //#######################//
-
-/*
-// TRIGGER PAGE TYPE EVENT
-// This add the page type to the context.
-*/
-
-document.getElementById('page-type').addEventListener('click', () => {      
-
-    let payload = {
-        type: "Example page type"
-    }
-
-    setPageType(payload);
-});
 
 /*
 // TRIGGER PRODUCT VIEW EVENT
@@ -396,16 +381,41 @@ document.getElementById('subscription').addEventListener('click', () => {
 
     let contexts = [
         {
-            schema: 'iglu:com.poochandmutt/subscription_object/jsonschema/1-1-4',
+            schema: 'iglu:com.poochandmutt/subscription_object/jsonschema/1-1-5',
             data: subscription
         }
     ]
+
+    /*
+    type must be one of:
+    "add_subscription"
+    "add_subscription_oneoff"
+    "add_subscription_freegift"
+    "cancel_subscription"
+    "activate_subscription"
+    "swap_subscription"
+    "skip_subscription"
+    "add_discount_subscription"
+    "remove_discount_subscription"
+    "update_subscription_quantity"
+    "update_subscription_frequency"
+    "update_subscription_date"
+    "update_subscription_address"
+    "update_subscription_payment"
+    "customer_churn"
+    "customer_cancel"
+    "customer_new"
+    "customer_return"
+    "customer_additional"
+    "new_subscription"
+    "recurring_subscription"
+    */
 
     let payload = {
         event: {
             schema: 'iglu:com.poochandmutt/subscription_action/jsonschema/1-0-2',
             data: {
-                type: "add_subscription"
+                type: "add_subscription"  // must be one of the above
             }
         },
         context: contexts
@@ -429,11 +439,20 @@ document.getElementById('form_event').addEventListener('click', () => {
         }
     ];
 
+    /*
+    type must be one of:
+    "view"
+    "interact"
+    "upload"
+    "submit"
+    "error"
+    */
+
     let payload = {
         event: {
             schema: 'iglu:com.poochandmutt/form_action/jsonschema/1-0-0',
             data: {
-                type: "form_event"
+                type: "interact" // must be one of the above
             }
         },
         context: contexts
