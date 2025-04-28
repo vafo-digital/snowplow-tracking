@@ -24,119 +24,142 @@ import {
     customer, 
 } from "./js/data";
 
-//#####################################//
-// || INITIALISE SNOWPLOW VARIABLES || //
-//#####################################//
+async function initSnowplow() {
 
-/* 
-  Connection to snowplow. 
-  Local host example using snowplow micro.
-  https://docs.snowplow.io/docs/data-product-studio/data-quality/snowplow-micro/basic-usage/
-*/
+    //#####################################//
+    // || INITIALISE SNOWPLOW VARIABLES || //
+    //#####################################//
 
-let collectorUrl = "http://localhost:9090/"
-let postPath = 'com.snowplowanalytics.snowplow/tp2'
-let appId = 'snowplow-demo-app'
+    /* 
+    Connection to snowplow. 
+    Local host example using snowplow micro.
+    https://docs.snowplow.io/docs/data-product-studio/data-quality/snowplow-micro/basic-usage/
+    */
 
-//######################//
-// || MANAGE CONSENT || //
-//######################//
+    let collectorUrl = "http://localhost:9090/"
+    let postPath = 'com.snowplowanalytics.snowplow/tp2'
+    let appId = 'snowplow-demo-app'
 
-/*
-    Manage tracking consent.
-    this example checks if functional consent is true.
-    If functional consent isn't granted, anonymoustracking mode is activated.
-*/
+    //######################//
+    // || MANAGE CONSENT || //
+    //######################//
 
-let eventMethod, anonymousTracking, stateStorageStrategy, respectDoNotTrack;
+    /*
+        Manage tracking consent.
+        this example checks if functional consent is true.
+        If functional consent isn't granted, anonymoustracking mode is activated.
+    */
 
-if (consent.functional) {
-    eventMethod = "post",
-    anonymousTracking = false;
-    stateStorageStrategy = "cookieAndLocalStorage";
-    respectDoNotTrack = false;
+    let eventMethod, anonymousTracking, stateStorageStrategy, respectDoNotTrack;
+
+    if (consent.functional) {
+        eventMethod = "post",
+        anonymousTracking = false;
+        stateStorageStrategy = "cookieAndLocalStorage";
+        respectDoNotTrack = false;
+    }
+    else {
+        eventMethod = "post",
+        anonymousTracking = { withServerAnonymisation: true };
+        stateStorageStrategy = "none";
+        respectDoNotTrack = false;
+    }
+
+    //##########################//
+    // || INITIALISE TRACKER || //
+    //##########################//
+
+    /* Initialise tracker with consent and config data. */
+    console.log('init');
+    newTracker('sp', collectorUrl, {
+        // idService: "/cookie.php", // uncomment this when deploying to producttionm
+        anonymousTracking: anonymousTracking,
+        eventMethod: eventMethod,
+        stateStorageStrategy: stateStorageStrategy,
+        respectDoNotTrack: respectDoNotTrack,
+        postPath: postPath,
+        appId: appId,
+        platform: 'web',
+        discoverRootDomain: true,
+        cookieSameSite: 'Lax',
+        contexts: {
+            webPage: true,
+            session: true,
+            browser: true
+        },
+        plugins: [ SnowplowEcommercePlugin(), PerformanceTimingPlugin(), ClientHintsPlugin(), MediaTrackingPlugin(), LinkClickTrackingPlugin() ]
+    });
+
+    //########################################//
+    // || SET GLOBAL CONTEXTS AND TRACKERS || //
+    //########################################//
+
+    /* Sets custom poochandmut global contexts for consent and customer data */
+    addGlobalContexts([{
+        schema: 'iglu:com.poochandmutt/consent_object/jsonschema/1-0-0',
+        data: consent
+    }]);
+
+    addGlobalContexts([{
+        schema: 'iglu:com.poochandmutt/customer_object/jsonschema/1-0-1',
+        data: customer
+    }]);
+
+    /* set anon id */ 
+    await fetch('http://localhost:8080/anon_id.php', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(response => {
+        console.log('adding anon');
+        addGlobalContexts([{
+            schema: 'iglu:com.poochandmutt/user_ids/jsonschema/1-0-0',
+            data: {
+                anon: response.anon_id
+            }
+        }]);
+    });
+
+    /* Sets user id and ecommerce user */
+
+    if(customer.id) {
+
+        let payload = {
+            id: customer.id,
+            email: customer.email,
+            is_guest: false
+        };
+        
+        setUserId(customer.id);
+        setEcommerceUser(payload);
+    }
+
+    /* Sets basic tracking for default page views and activity */
+
+    enableActivityTracking({ 
+        minimumVisitLength: 30, 
+        heartbeatDelay: 10 
+    });
+
+    setPageType({
+        type: "pdp" // home, plp, pdp, cart, checkout, thankyou, blog, article, landing etc
+    });
+
+    trackPageView();
+
+    /* Track link clicks from allowed class list and return tag content for context */
+
+    enableLinkClickTracking({ 
+        pseudoClicks: true,
+        options: {
+            'allowlist': ['sp-track']
+        },
+        trackContent: true 
+    });
+
 }
-else {
-    eventMethod = "post",
-    anonymousTracking = { withServerAnonymisation: true };
-    stateStorageStrategy = "none";
-    respectDoNotTrack = false;
-}
 
-//##########################//
-// || INITIALISE TRACKER || //
-//##########################//
-
-/* Initialise tracker with consent and config data. */
-
-newTracker('sp', collectorUrl, {
-    // idService: "/cookie.php", // uncomment this when deploying to producttionm
-    anonymousTracking: anonymousTracking,
-    eventMethod: eventMethod,
-    stateStorageStrategy: stateStorageStrategy,
-    respectDoNotTrack: respectDoNotTrack,
-    postPath: postPath,
-    appId: appId,
-    platform: 'web',
-    discoverRootDomain: true,
-    cookieSameSite: 'Lax',
-    contexts: {
-        webPage: true,
-        session: true,
-        browser: true
-    },
-    plugins: [ SnowplowEcommercePlugin(), PerformanceTimingPlugin(), ClientHintsPlugin(), MediaTrackingPlugin(), LinkClickTrackingPlugin() ]
-});
-
-//########################################//
-// || SET GLOBAL CONTEXTS AND TRACKERS || //
-//########################################//
-
-/* Sets custom poochandmut global contexts for consent and customer data */
-
-addGlobalContexts([{
-    schema: 'iglu:com.poochandmutt/consent_object/jsonschema/1-0-0',
-    data: consent
-}]);
-
-addGlobalContexts([{
-    schema: 'iglu:com.poochandmutt/customer_object/jsonschema/1-0-1',
-    data: customer
-}]);
-
-/* Sets user id and ecommerce user */
-
-if(customer.id) {
-
-    let payload = {
-        id: customer.id,
-        email: customer.email,
-        is_guest: false
-    };
-    
-    setUserId(customer.id);
-    setEcommerceUser(payload);
-}
-
-/* Sets basic tracking for default page views and activity */
-
-enableActivityTracking({ 
-    minimumVisitLength: 30, 
-    heartbeatDelay: 10 
-});
-
-setPageType({
-    type: "pdp" // home, plp, pdp, cart, checkout, thankyou, blog, article, landing etc
-});
-
-trackPageView();
-
-/* Track link clicks from allowed class list and return tag content for context */
-
-enableLinkClickTracking({ 
-    pseudoClicks: true,
-    options: {
-        'allowlist': ['sp-track']
-    },
-    trackContent: true 
-});
+initSnowplow();

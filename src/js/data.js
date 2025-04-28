@@ -1,6 +1,6 @@
 export let consent = {
     required: true,
-    functional: true,
+    functional: false,
     analytics: true,
     social: true,
     targeting: true

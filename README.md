@@ -18,11 +18,16 @@ Example installation and configuration of Snowplow with example event tracking.
 
 2. Pipeline URL; http://localhost:9090/micro/ui 
 
-3. Run the project
+3. Run the PHP Server
+   ```sh
+   php -S 0.0.0.0:8080
+   ```
+
+4. Run the project
    ```sh
    npm run dev
    ```
 
-4. Project URL; http://localhost:1234/
+5. Project URL; http://localhost:1234/
 
-5. There is also a browser extension you can install to view the Snowplow events; https://docs.snowplow.io/docs/data-product-studio/data-quality/snowplow-inspector/
+6. There is also a browser extension you can install to view the Snowplow events; https://docs.snowplow.io/docs/data-product-studio/data-quality/snowplow-inspector/
